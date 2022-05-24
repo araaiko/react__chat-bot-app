@@ -51,15 +51,22 @@ export default class App extends React.Component {
     }
   }
   
-  componentDidMount() { //=useEffect
+  componentDidMount() { //=useEffect & 初回レンダリングのみ
     this.selectAnswer("", this.state.currentId);
+  }
+
+  componentDidUpdate() {
+    const scrollArea = document.querySelector('#js-scroll-area');
+    if (scrollArea) {
+      scrollArea.scrollTop = scrollArea.scrollHeight;      
+    }
   }
 
   render() {
     return (
       <section className="c-section">
         <div className="c-box">
-          {console.log(this.state.chats)}
+          {/* {console.log(this.state.chats)} */}
           <Chats chats={this.state.chats} />
           <AnswersList answers={this.state.answers} select={this.selectAnswer} />
         </div>

@@ -1,8 +1,9 @@
 import React from "react";
-import defaultDataset from "./dataset";
 import './assets/styles/style.css';
 import { AnswersList, Chats } from "./components";
 import FormDialog from "./components/Forms/FormDialog";
+import { db } from "./firebase";
+import { collection, getDocs } from 'firebase/firestore/lite';
 
 export default class App extends React.Component {
   constructor(props) {
@@ -11,7 +12,7 @@ export default class App extends React.Component {
       answers: [],
       chats: [],
       currentId: "init",
-      dataset: defaultDataset, //外部データベースと接続する場合は{}にしておこう
+      dataset: {}, //外部データベースと接続する場合は{}にしておこう
       open: false,
     };
 
@@ -79,9 +80,28 @@ export default class App extends React.Component {
         open: false,
     });
   };
+
+  initDataset = (dataset) => {
+    this.setState({
+      dataset: dataset
+    });
+  }
   
   componentDidMount() { //=useEffect & 初回レンダリングのみ
-    this.selectAnswer("", this.state.currentId);
+    (async () => {
+      const dataset = this.state.dataset; //this.state.datasetの値をdefaultDataset → {}に変更すること
+      const questionsCol = collection(db, 'questions');
+      const questionsSnapshot = await getDocs(questionsCol);
+      questionsSnapshot.forEach(doc => {
+        const id = doc.id;
+        const data = doc.data();
+        dataset[id] = data;
+      });
+
+      this.initDataset(dataset);
+      const initAnswer = "";
+      this.selectAnswer(initAnswer, this.state.currentId);      
+    })();
   }
 
   componentDidUpdate() {

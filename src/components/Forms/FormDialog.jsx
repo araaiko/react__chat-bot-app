@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useState } from "react";
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -6,45 +6,29 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import TextInput from "./TextInput";
 
-export default class FormDialog extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            name: "",
-            email: "",
-            description: "", //お問い合わせ内容
-        }
+const FormDialog = (props) => {
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [description, setDescription] = useState("");
 
-        this.inputName = this.inputName.bind(this);
-        this.inputEmail = this.inputEmail.bind(this);
-        this.inputDescription = this.inputDescription.bind(this);
-    }
+    const inputName = useCallback((event) => {
+        setName(event.target.value);
+    }, [setName]);
 
-    inputName = (event) => {
-        // console.log(event.target.value)
-        this.setState({
-            name: event.target.value,
-        });
-    }
+    const inputEmail = useCallback((event) => {
+        setEmail(event.target.value);
+    }, [setEmail]);
 
-    inputEmail = (event) => {
-        this.setState({
-            email: event.target.value,
-        });
-    }
-
-    inputDescription = (event) => {
-        this.setState({
-            description: event.target.value,
-        });
-    }
+    const inputDescription = useCallback((event) => {
+        setDescription(event.target.value);
+    }, [setDescription]);
     
-    validateEmailFormat = (email) => {
+   const validateEmailFormat = (email) => {
         // eslint-disable-next-line
         const regex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
         return regex.test(email);
     }
-    validateRequiredInput = (...args) => {
+    const validateRequiredInput = (...args) => {
         let isBlank = false;
         for (let i = 0; i < args.length; i=(i+1)|0) {
             if (args[i] === "") {
@@ -54,13 +38,10 @@ export default class FormDialog extends React.Component {
         return isBlank
     };
 
-    submitForm = () => {
-        const name = this.state.name;
-        const email = this.state.email;
-        const description = this.state.description;
-
-        const isBlank = this.validateRequiredInput(name, email, description);
-        const isValidEmail = this.validateEmailFormat(email);
+    //slackに問い合わせがあったことを通知する
+    const submitForm = () => {
+        const isBlank = validateRequiredInput(name, email, description);
+        const isValidEmail = validateEmailFormat(email);
             
         if (isBlank) {
             alert('必須入力欄が空白です。');
@@ -84,62 +65,60 @@ export default class FormDialog extends React.Component {
                 body: JSON.stringify(payload)
             }).then(() => {
                 alert('送信が完了しました！');
-                this.setState({
-                    name: "",
-                    email: "",
-                    description: "",
-                });
-                return this.props.handleClose();
+                setName("");
+                setEmail("");
+                setDescription("");
+                return props.handleClose();
             });
         }
     }
 
-    render() {
-        return (            
-            <>
-            <Dialog
-                open={this.props.open}
-                onClose={this.props.handleClose}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
-                <DialogTitle id="alert-dialog-title">
-                    お問合せフォーム
-                </DialogTitle>
-                <DialogContent>
-                        <TextInput
-                            label={'お名前(必須)'}
-                            multiline={false}
-                            rows={1}
-                            value={this.state.name}
-                            type={'text'}
-                            onChange={this.inputName}
-                        />
-                        <TextInput
-                            label={'メールアドレス(必須)'}
-                            multiline={false}
-                            rows={1}
-                            value={this.state.email}
-                            type={'email'}
-                            onChange={this.inputEmail}
-                        />
-                        <TextInput
-                            label={'お問合せ内容(必須)'}
-                            multiline={true}
-                            rows={5}
-                            value={this.state.description}
-                            type={'text'}
-                            onChange={this.inputDescription}
-                        />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={this.props.handleClose}>キャンセル</Button>
-                    <Button onClick={this.submitForm} autoFocus>
-                        送信する
-                    </Button>
-                </DialogActions>
-            </Dialog>
-            </>
-        );
-    }
+    return (            
+        <>
+        <Dialog
+            open={props.open}
+            onClose={props.handleClose}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+        >
+            <DialogTitle id="alert-dialog-title">
+                お問合せフォーム
+            </DialogTitle>
+            <DialogContent>
+                    <TextInput
+                        label={'お名前(必須)'}
+                        multiline={false}
+                        rows={1}
+                        value={name}
+                        type={'text'}
+                        onChange={inputName}
+                    />
+                    <TextInput
+                        label={'メールアドレス(必須)'}
+                        multiline={false}
+                        rows={1}
+                        value={email}
+                        type={'email'}
+                        onChange={inputEmail}
+                    />
+                    <TextInput
+                        label={'お問合せ内容(必須)'}
+                        multiline={true}
+                        rows={5}
+                        value={description}
+                        type={'text'}
+                        onChange={inputDescription}
+                    />
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={props.handleClose}>キャンセル</Button>
+                <Button onClick={submitForm} autoFocus>
+                    送信する
+                </Button>
+            </DialogActions>
+        </Dialog>
+        </>
+    );
 }
+
+export default FormDialog;
